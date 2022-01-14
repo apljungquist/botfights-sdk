@@ -1,5 +1,8 @@
 # wordle.py -- botfights harness for wordle
+import pathlib
 
+import fire as fire
+import pkg_resources
 
 USAGE = '''\
 This is a harness to write bots that play wordle.
@@ -29,16 +32,15 @@ To enter your bot in the "botfights_i" event:
 
 '''
 
-
 import sys, importlib, random, time
 
 import requests
 
-
 MAGIC = 'WORDLE'
 
-
 g_random = None
+
+
 def get_random():
     global g_random
     if None == g_random:
@@ -143,10 +145,12 @@ def play_bots(bots, wordlist, n):
             total_guesses[bot] += guesses
             total_time[bot] += t
             i += 1
-            sys.stdout.write('WORD\t%d\t%s\t%s\t%d\t%.3f\t%.3f\t%.3f\n' % (i, word, bot, guesses, total_guesses[bot] / float(i), t, total_time[bot] / float(i)))
+            sys.stdout.write('WORD\t%d\t%s\t%s\t%d\t%.3f\t%.3f\t%.3f\n' % (
+            i, word, bot, guesses, total_guesses[bot] / float(i), t, total_time[bot] / float(i)))
         if 1 != len(bots):
-            bots_sorted = sorted(bot_keys, key = lambda x: total_guesses[x])
-            sys.stdout.write('BOTS\t%d\t%s\t%s\n' % (i, word, '\t'.join(map(lambda x: '%s:%d,%.3f' % (x, last_guesses[x], total_guesses[x] / float(i)), bots_sorted))))
+            bots_sorted = sorted(bot_keys, key=lambda x: total_guesses[x])
+            sys.stdout.write('BOTS\t%d\t%s\t%s\n' % (i, word, '\t'.join(
+                map(lambda x: '%s:%d,%.3f' % (x, last_guesses[x], total_guesses[x] / float(i)), bots_sorted))))
     return n
 
 
@@ -190,13 +194,38 @@ def play_botfights(bot, username, password, event):
         round_num += 1
         print('Round %d, %d words to go ...' % (round_num, len(guesses)))
         time.sleep(1.0)
-        r = requests.patch('https://api.botfights.io/api/v1/game/wordle/%s' % fight_id, auth=(username, password), json=payload)
+        r = requests.patch('https://api.botfights.io/api/v1/game/wordle/%s' % fight_id, auth=(username, password),
+                           json=payload)
         response = r.json()
         feedback = response['feedback']
         if 'score' in response:
             score = int(response['score'])
             print('Fight complete. Final score: %d' % score)
             break
+
+
+def _gen_implementations():
+    for entry_point in pkg_resources.iter_entry_points("botfights_sdk.wordle"):
+        factory_func = entry_point.load()
+        yield entry_point.name, factory_func
+
+
+def get_implementations():
+    """Instantiate all registered formatters."""
+    return dict(_gen_implementations())
+
+
+def _play_bot(name: str, seed: str = "", num: int = 0):
+    impls = get_implementations()
+    bot = impls[name]
+    get_random().seed(seed)
+    wordlist = load_wordlist(pathlib.Path(__file__).absolute().parent / "wordlist.txt")
+    x = play_bots({name: bot}, wordlist, num)
+    return x
+
+
+def fire_main():
+    fire.Fire({"play_bot": _play_bot})
 
 
 def main(argv):
@@ -265,4 +294,3 @@ def main(argv):
 if __name__ == '__main__':
     x = main(sys.argv[1:])
     sys.exit(x)
-

@@ -16,7 +16,7 @@ $ python wordle.py human
 To test a bot named `play` in `sample-bot.py` against 100 words in `wordlist.txt`:
 
 ```
-$ python wordle.py bot wordlist.txt sample-bot.play 100
+$ wordle sample --num 100
 ```
 
 To write a bot, write a function `play` in a python file that takes a

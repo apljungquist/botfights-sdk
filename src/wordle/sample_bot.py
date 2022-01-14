@@ -1,8 +1,7 @@
 # sample-bot.py
 
 # sample bot to play wordle. see wordle.py for how to play.
-
-
+import pathlib
 import random
 
 
@@ -11,7 +10,7 @@ def get_wordlist():
     global g_wordlist
     if None == g_wordlist:
         g_wordlist = []
-        for i in open('wordlist.txt').readlines():
+        for i in (pathlib.Path(__file__).parent/'wordlist.txt').open().readlines():
             i = i[:-1]
             g_wordlist.append(i)
     return g_wordlist

@@ -12,7 +12,7 @@ setuptools.setup(
     entry_points={
         "console_scripts": ["wordle = wordle.wordle:fire_main"],
         "botfights_sdk.wordle": [
-            "sample = wordle.sample_bot:play",
+            "sample = wordle.sample_bot:Bot",
         ],
     },
 )

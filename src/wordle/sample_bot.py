@@ -1,19 +1,7 @@
 # sample-bot.py
 
 # sample bot to play wordle. see wordle.py for how to play.
-import pathlib
 import random
-
-
-g_wordlist = None
-def get_wordlist():
-    global g_wordlist
-    if None == g_wordlist:
-        g_wordlist = []
-        for i in (pathlib.Path(__file__).parent/'wordlist.txt').open().readlines():
-            i = i[:-1]
-            g_wordlist.append(i)
-    return g_wordlist
 
 
 # this has lots of false positives, only pay attention to 3s
@@ -29,11 +17,14 @@ def could_match(target, guess, feedback):
     return True
 
 
-def play(state):
-    # state looks like: "-----:00000,arose:31112,amend:31211"
-    possible = get_wordlist()
-    for pair in state.split(','):
-        guess, feedback = pair.split(':')
-        possible = list(filter(lambda x: could_match(x, guess, feedback), possible))
-    return random.choice(possible)
+class Bot:
+    def __init__(self, wordlist):
+        self._wordlist = wordlist
 
+    def __call__(self, state):
+        # state looks like: "-----:00000,arose:31112,amend:31211"
+        possible = self._wordlist
+        for pair in state.split(','):
+            guess, feedback = pair.split(':')
+            possible = list(filter(lambda x: could_match(x, guess, feedback), possible))
+        return random.choice(possible)

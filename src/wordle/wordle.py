@@ -146,7 +146,7 @@ def play_bots(bots, wordlist, n):
             total_time[bot] += t
             i += 1
             sys.stdout.write('WORD\t%d\t%s\t%s\t%d\t%.3f\t%.3f\t%.3f\n' % (
-            i, word, bot, guesses, total_guesses[bot] / float(i), t, total_time[bot] / float(i)))
+                i, word, bot, guesses, total_guesses[bot] / float(i), t, total_time[bot] / float(i)))
         if 1 != len(bots):
             bots_sorted = sorted(bot_keys, key=lambda x: total_guesses[x])
             sys.stdout.write('BOTS\t%d\t%s\t%s\n' % (i, word, '\t'.join(
@@ -216,12 +216,12 @@ def get_implementations():
 
 
 def _play_bot(name: str, seed: str = "", num: int = 0):
-    impls = get_implementations()
-    bot = impls[name]
     get_random().seed(seed)
+
     wordlist = load_wordlist(pathlib.Path(__file__).absolute().parent / "wordlist.txt")
-    x = play_bots({name: bot}, wordlist, num)
-    return x
+    bot = get_implementations()[name](wordlist)
+
+    return play_bots({name: bot}, wordlist, num)
 
 
 def fire_main():

@@ -1,8 +1,4 @@
 # wordle.py -- botfights harness for wordle
-import pathlib
-
-import fire as fire
-import pkg_resources
 
 USAGE = '''\
 This is a harness to write bots that play wordle.
@@ -32,7 +28,10 @@ To enter your bot in the "botfights_i" event:
 
 '''
 
-import sys, importlib, random, time
+import importlib
+import random
+import sys
+import time
 
 import requests
 
@@ -203,29 +202,6 @@ def play_botfights(bot, username, password, event):
             print('Fight complete. Final score: %d' % score)
             break
 
-
-def _gen_implementations():
-    for entry_point in pkg_resources.iter_entry_points("botfights_sdk.wordle"):
-        factory_func = entry_point.load()
-        yield entry_point.name, factory_func
-
-
-def get_implementations():
-    """Instantiate all registered formatters."""
-    return dict(_gen_implementations())
-
-
-def _play_bot(name: str, seed: str = "", num: int = 0):
-    get_random().seed(seed)
-
-    wordlist = load_wordlist(pathlib.Path(__file__).absolute().parent / "wordlist.txt")
-    bot = get_implementations()[name](wordlist)
-
-    return play_bots({name: bot}, wordlist, num)
-
-
-def fire_main():
-    fire.Fire({"play_bot": _play_bot})
 
 
 def main(argv):

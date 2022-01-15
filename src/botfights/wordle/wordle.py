@@ -110,7 +110,6 @@ def play_word(bot, secret, wordlist):
         guess = get_play(bot, history)
         score = calc_score(secret, guess, wordlist)
         history.append((guess, score))
-        sys.stdout.write('PLAY\t%d\t%s\t%s\t%s\n' % (guess_num, secret, guess, score))
         if guess == secret:
             return guess_num
         if guess_num == len(wordlist):
@@ -151,6 +150,52 @@ def play_bots(bots, wordlist, n):
             sys.stdout.write('BOTS\t%d\t%s\t%s\n' % (i, word, '\t'.join(
                 map(lambda x: '%s:%d,%.3f' % (x, last_guesses[x], total_guesses[x] / float(i)), bots_sorted))))
     return n
+
+
+ALPHABET = "abcdefghijklmnopqrstuvwxyz"
+
+
+def _fmt_permitted(permitted):
+    return "\n".join("".join(c if c in p else " " for c in ALPHABET) for p in permitted)
+
+
+def _permitted(state):
+    permitted = [set(ALPHABET) for _ in range(5)]
+    required = set()
+    for guess, feedback in [step.split(":") for step in state.split(",")]:
+        for i, (g, f) in enumerate(zip(guess, feedback)):
+            f = int(f)
+            match f:
+                case 0:
+                    pass
+                case 1:
+                    permitted[i].discard(g)
+                    if g not in required:
+                        for p in permitted:
+                            p.discard(g)
+                case 2:
+                    required.add(g)
+                    permitted[i].discard(g)
+                case 3:
+                    required.add(g)
+                    permitted[i] = {g}
+                case _:
+                    assert False
+    return permitted
+
+
+class Assisted:
+    def __init__(self, wordlist):
+        self._wordlist = wordlist
+
+    def __call__(self, state):
+        prompt = "Your guess: "
+        score = state.split(",")[-1].split(":")[-1]
+        if score != "00000":
+            print(f"{'score: ':>{len(prompt)}}{score}")
+            print()
+        print(_fmt_permitted(_permitted(state)))
+        return input(prompt).strip()
 
 
 def play_human(secret, wordlist):

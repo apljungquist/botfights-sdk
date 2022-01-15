@@ -13,6 +13,7 @@ setuptools.setup(
         "console_scripts": ["fight = botfights:main"],
         "botfights.wordle.guesser": [
             "sample = botfights.wordle.sample_bot:Bot",
+            "assisted = botfights.wordle.wordle:Assisted",
         ],
     },
 )

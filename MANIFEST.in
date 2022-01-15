@@ -1,0 +1,5 @@
+global-exclude *
+graft src
+global-exclude *.pyc
+include pyproject.toml
+include setup.py

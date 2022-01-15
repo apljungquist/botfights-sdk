@@ -4,7 +4,6 @@ import setuptools
 
 setuptools.setup(
     name="botfights",
-    version="0.0",
     install_requires=["fire", "requests"],
     packages=setuptools.find_packages("src"),
     package_dir={"": "src"},

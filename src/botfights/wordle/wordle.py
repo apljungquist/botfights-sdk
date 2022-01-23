@@ -168,7 +168,7 @@ def play_bots(bots, wordlist, n):
             total_time[bot] += t
             i += 1
             logger.info(
-                "WORD\t%d\t%s\t%s\t%d\t%.3f\t%.3f\t%.3f\n",
+                "WORD\t%d\t%s\t%s\t%d\t%.3f\t%.3f\t%.3f",
                 i,
                 word,
                 bot,
@@ -180,7 +180,7 @@ def play_bots(bots, wordlist, n):
         if 1 != len(bots):
             bots_sorted = sorted(bot_keys, key=lambda x: total_guesses[x])
             logger.info(
-                "BOTS\t%d\t%s\t%s\n",
+                "BOTS\t%d\t%s\t%s",
                 i,
                 word,
                 "\t".join(

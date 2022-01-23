@@ -8,3 +8,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 # Section is enough to enable
+
+[tool.isort]
+profile = "black"

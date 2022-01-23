@@ -1,10 +1,11 @@
 import os
 import pathlib
 from typing import Optional
+
 import fire
 import pkg_resources
 
-from botfights.wordle.wordle import get_random, load_wordlist, play_bots, play_botfights
+from botfights.wordle.wordle import get_random, load_wordlist, play_botfights, play_bots
 
 
 def _gen_implementations():

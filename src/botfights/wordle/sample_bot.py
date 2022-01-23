@@ -8,7 +8,7 @@ import random
 #
 def could_match(target, guess, feedback):
     for i, ch in enumerate(feedback):
-        if '3' == ch:
+        if "3" == ch:
             if target[i] != guess[i]:
                 return False
         else:
@@ -24,7 +24,7 @@ class Bot:
     def __call__(self, state):
         # state looks like: "-----:00000,arose:31112,amend:31211"
         possible = self._wordlist
-        for pair in state.split(','):
-            guess, feedback = pair.split(':')
+        for pair in state.split(","):
+            guess, feedback = pair.split(":")
             possible = list(filter(lambda x: could_match(x, guess, feedback), possible))
         return random.choice(possible)

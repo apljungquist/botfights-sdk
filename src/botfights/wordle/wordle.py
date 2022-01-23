@@ -1,6 +1,6 @@
 # wordle.py -- botfights harness for wordle
 
-USAGE = '''\
+USAGE = """\
 This is a harness to write bots that play wordle.
 
 See: https://www.powerlanguage.co.uk/wordle/
@@ -26,7 +26,7 @@ To enter your bot in the "botfights_i" event:
 
    $ python wordle.py botfights sample-bot.play XXXXX YYYYYYYYYY botfights_i
 
-'''
+"""
 
 import importlib
 import random
@@ -35,7 +35,7 @@ import time
 
 import requests
 
-MAGIC = 'WORDLE'
+MAGIC = "WORDLE"
 
 g_random = None
 
@@ -55,56 +55,58 @@ def load_wordlist(fn):
 
 
 def load_bot(s):
-    fn, func = s.split('.')
+    fn, func = s.split(".")
     module = importlib.import_module(fn)
     bot = getattr(module, func)
     return bot
 
 
 def get_play(bot, history):
-    state = ','.join(map(lambda x: '%s:%s' % (x[0], x[1]), history))
+    state = ",".join(map(lambda x: "%s:%s" % (x[0], x[1]), history))
     response = bot(state)
     return response
 
 
 def calc_score(secret, guess, wordlist):
     if not guess in wordlist:
-        return '0' * len(secret)
+        return "0" * len(secret)
 
-    a = ['0'] * len(secret)
+    a = ["0"] * len(secret)
     secret_arr = [char for char in secret]
 
     # First pass of the guess, to find any that match exactly
     for i, ch in enumerate(secret_arr):
-        g = '-'
+        g = "-"
         if i < len(guess):
             g = guess[i]
         if ch == g:
-            a[i] = '3'
-            secret_arr[i] = ' '
+            a[i] = "3"
+            secret_arr[i] = " "
 
     # Second pass to score the rest, without re-using the secret letters more than once
     for i, ch in enumerate(secret_arr):
-        if a[i] == '3':
+        if a[i] == "3":
             continue
-        g = '-'
+        g = "-"
         if i < len(guess):
             g = guess[i]
 
         if g in secret_arr:
             idx = secret_arr.index(g)
-            secret_arr[idx] = ' '
-            a[i] = '2'
+            secret_arr[idx] = " "
+            a[i] = "2"
         else:
-            a[i] = '1'
+            a[i] = "1"
 
-    return ''.join(a)
+    return "".join(a)
 
 
 def play_word(bot, secret, wordlist):
-    guess = '-' * len(secret)
+    guess = "-" * len(secret)
     score = calc_score(secret, guess, wordlist)
-    history = [(guess, score), ]
+    history = [
+        (guess, score),
+    ]
     guess_num = 1
     while 1:
         guess = get_play(bot, history)
@@ -143,12 +145,34 @@ def play_bots(bots, wordlist, n):
             total_guesses[bot] += guesses
             total_time[bot] += t
             i += 1
-            sys.stdout.write('WORD\t%d\t%s\t%s\t%d\t%.3f\t%.3f\t%.3f\n' % (
-                i, word, bot, guesses, total_guesses[bot] / float(i), t, total_time[bot] / float(i)))
+            sys.stdout.write(
+                "WORD\t%d\t%s\t%s\t%d\t%.3f\t%.3f\t%.3f\n"
+                % (
+                    i,
+                    word,
+                    bot,
+                    guesses,
+                    total_guesses[bot] / float(i),
+                    t,
+                    total_time[bot] / float(i),
+                )
+            )
         if 1 != len(bots):
             bots_sorted = sorted(bot_keys, key=lambda x: total_guesses[x])
-            sys.stdout.write('BOTS\t%d\t%s\t%s\n' % (i, word, '\t'.join(
-                map(lambda x: '%s:%d,%.3f' % (x, last_guesses[x], total_guesses[x] / float(i)), bots_sorted))))
+            sys.stdout.write(
+                "BOTS\t%d\t%s\t%s\n"
+                % (
+                    i,
+                    word,
+                    "\t".join(
+                        map(
+                            lambda x: "%s:%d,%.3f"
+                            % (x, last_guesses[x], total_guesses[x] / float(i)),
+                            bots_sorted,
+                        )
+                    ),
+                )
+            )
     return n
 
 
@@ -200,53 +224,64 @@ class Assisted:
 
 def play_human(secret, wordlist):
     guess_num = 0
-    guess = '-' * len(secret)
+    guess = "-" * len(secret)
     while 1:
         score = calc_score(secret, guess, wordlist)
-        sys.stdout.write('guess_num: %d, last_guess: %s, last_score: %s\n' % (guess_num, guess, score))
-        sys.stdout.write('Your guess?\n')
+        sys.stdout.write(
+            "guess_num: %d, last_guess: %s, last_score: %s\n"
+            % (guess_num, guess, score)
+        )
+        sys.stdout.write("Your guess?\n")
         guess = sys.stdin.readline().strip()
         guess_num += 1
         if guess == secret:
             break
-    sys.stdout.write('Congratulations! You solved it in %d guesses.\n' % guess_num)
+    sys.stdout.write("Congratulations! You solved it in %d guesses.\n" % guess_num)
     return guess_num
 
 
 def play_botfights(bot, username, password, event):
-    print('Creating fight on botfights.io ...')
-    payload = {'event': event}
-    r = requests.put('https://api.botfights.io/api/v1/game/wordle/', auth=(username, password), json=payload)
+    print("Creating fight on botfights.io ...")
+    payload = {"event": event}
+    r = requests.put(
+        "https://api.botfights.io/api/v1/game/wordle/",
+        auth=(username, password),
+        json=payload,
+    )
     fight = r.json()
-    fight_id = fight['fight_id']
-    feedback = fight['feedback']
-    print('Fight created: https://botfights.io/fight/%s' % fight_id)
+    fight_id = fight["fight_id"]
+    feedback = fight["feedback"]
+    print("Fight created: https://botfights.io/fight/%s" % fight_id)
     history = {}
     for i, f in feedback.items():
-        history[i] = [['-' * len(f), f], ]
+        history[i] = [
+            ["-" * len(f), f],
+        ]
     round_num = 0
     while 1:
         guesses = {}
         for i, f in feedback.items():
-            if '33333' == f:
+            if "33333" == f:
                 continue
             history[i][-1][1] = f
             guess = get_play(bot, history[i])
             guesses[i] = guess
             history[i].append([guess, None])
-        payload = {'guesses': guesses}
+        payload = {"guesses": guesses}
         round_num += 1
-        print('Round %d, %d words to go ...' % (round_num, len(guesses)))
+        print("Round %d, %d words to go ..." % (round_num, len(guesses)))
         time.sleep(1.0)
-        r = requests.patch('https://api.botfights.io/api/v1/game/wordle/%s' % fight_id, auth=(username, password),
-                           json=payload)
+        r = requests.patch(
+            "https://api.botfights.io/api/v1/game/wordle/%s" % fight_id,
+            auth=(username, password),
+            json=payload,
+        )
         response = r.json()
-        feedback = response['feedback']
-        if 'score' in response:
-            score = int(response['score'])
-            print('Fight complete. Final score: %d' % score)
+        feedback = response["feedback"]
+        if "score" in response:
+            score = int(response["score"])
+            print("Fight complete. Final score: %d" % score)
             break
-
 
 
 def main(argv):
@@ -256,26 +291,26 @@ def main(argv):
     c = argv[0]
     if 0:
         pass
-    elif 'human' == c:
+    elif "human" == c:
         if 1 < len(argv):
             wordlist = load_wordlist(argv[1])
         else:
-            wordlist = load_wordlist('wordlist.txt')
+            wordlist = load_wordlist("wordlist.txt")
         secret = get_random().choice(list(wordlist))
         if 2 == len(argv):
             secret = argv[2]
         x = play_human(secret, wordlist)
         return x
-    elif 'help' == c:
+    elif "help" == c:
         print(USAGE)
         sys.exit()
-    elif 'score' == c:
+    elif "score" == c:
         wordlist = load_wordlist(argv[1])
         secret = argv[2]
         guess = argv[3]
         x = calc_score(secret, guess, wordlist)
         print(x)
-    elif 'bot' == c:
+    elif "bot" == c:
         fn_wordlist = argv[1]
         bot = load_bot(argv[2])
         n = 0
@@ -286,7 +321,7 @@ def main(argv):
         wordlist = load_wordlist(fn_wordlist)
         x = play_bots({argv[2]: bot}, wordlist, n)
         return x
-    elif 'bots' == c:
+    elif "bots" == c:
         fn_wordlist = argv[1]
         n = int(argv[2])
         get_random().seed(argv[3])
@@ -296,14 +331,14 @@ def main(argv):
         wordlist = load_wordlist(fn_wordlist)
         x = play_bots(bots, wordlist, n)
         return x
-    elif 'word' == c:
+    elif "word" == c:
         fn_wordlist = argv[1]
         bot = load_bot(argv[2])
         secret = argv[3]
         wordlist = load_wordlist(fn_wordlist)
         x = play_word(bot, secret, wordlist)
         return x
-    elif 'botfights' == c:
+    elif "botfights" == c:
         bot = load_bot(argv[1])
         username, password, event = argv[2:5]
         play_botfights(bot, username, password, event)
@@ -312,6 +347,6 @@ def main(argv):
         sys.exit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     x = main(sys.argv[1:])
     sys.exit(x)

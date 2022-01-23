@@ -1,3 +1,4 @@
+import importlib.util
 import os
 import pathlib
 from typing import Optional
@@ -29,10 +30,22 @@ def wordle(
     get_random().seed(seed)
 
     wordlist = load_wordlist(wordlist, fraction)
-    bot = get_implementations()[guesser](wordlist)
+    if "::" in guesser:
+        path, cls_name = guesser.split("::")
+        path = pathlib.Path(path)
+        spec = importlib.util.spec_from_file_location(path.stem, path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        cls = getattr(mod, cls_name)
+        bot_name = f"{mod.__name__}.{cls.__name__}"
+    else:
+        bot_name = guesser
+        cls = get_implementations()[bot_name]
+
+    bot = cls(wordlist)
 
     if event is None:
-        return play_bots({guesser: bot}, wordlist, num)
+        return play_bots({bot_name: bot}, wordlist, num)
     else:
         return play_botfights(
             bot, os.environ["BOTFIGHTS_USER"], os.environ["BOTFIGHTS_PASS"], event

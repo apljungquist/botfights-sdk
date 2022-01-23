@@ -1,4 +1,7 @@
 # wordle.py -- botfights harness for wordle
+import itertools
+
+import pkg_resources
 
 USAGE = """\
 This is a harness to write bots that play wordle.
@@ -47,11 +50,22 @@ def get_random():
     return g_random
 
 
-def load_wordlist(fn):
-    a = set()
-    for i in open(fn).readlines():
-        a.add(i[:-1])
-    return a
+def load_wordlist(name):
+    try:
+        with open(name) as f:
+            text = f.read()
+    except FileNotFoundError:
+        text = pkg_resources.resource_string("botfights.wordle", f"{name}.txt").decode()
+    lines = iter(text.splitlines())
+    answers = list(itertools.takewhile(lambda line: line, lines))
+    guesses = list(lines)
+    return {
+        word: is_answer
+        for word, is_answer in itertools.chain(
+            [(answer, True) for answer in answers],
+            [(guess, False) for guess in guesses],
+        )
+    }
 
 
 def load_bot(s):
@@ -127,11 +141,11 @@ def play_bots(bots, wordlist, n):
     for i in bot_keys:
         total_guesses[i] = 0
         total_time[i] = 0.0
+    wordlist_as_list = sorted([k for k, v in wordlist.items() if v])
     if 0 == n:
-        count = len(wordlist)
+        count = len(wordlist_as_list)
     else:
         count = n
-    wordlist_as_list = sorted(list(wordlist))
     for i in range(count):
         if 0 == n:
             word = wordlist_as_list[i]
@@ -293,9 +307,9 @@ def main(argv):
         pass
     elif "human" == c:
         if 1 < len(argv):
-            wordlist = load_wordlist(argv[1])
+            wordlist = load_wordlist(argv[1]).values()
         else:
-            wordlist = load_wordlist("wordlist.txt")
+            wordlist = load_wordlist("bot").values()
         secret = get_random().choice(list(wordlist))
         if 2 == len(argv):
             secret = argv[2]
@@ -305,7 +319,7 @@ def main(argv):
         print(USAGE)
         sys.exit()
     elif "score" == c:
-        wordlist = load_wordlist(argv[1])
+        wordlist = load_wordlist(argv[1]).values()
         secret = argv[2]
         guess = argv[3]
         x = calc_score(secret, guess, wordlist)
@@ -318,7 +332,7 @@ def main(argv):
             n = int(argv[3])
         if 5 <= len(argv):
             get_random().seed(argv[4])
-        wordlist = load_wordlist(fn_wordlist)
+        wordlist = load_wordlist(fn_wordlist).values()
         x = play_bots({argv[2]: bot}, wordlist, n)
         return x
     elif "bots" == c:
@@ -328,14 +342,14 @@ def main(argv):
         bots = {}
         for i in argv[4:]:
             bots[i] = load_bot(i)
-        wordlist = load_wordlist(fn_wordlist)
+        wordlist = load_wordlist(fn_wordlist).values()
         x = play_bots(bots, wordlist, n)
         return x
     elif "word" == c:
         fn_wordlist = argv[1]
         bot = load_bot(argv[2])
         secret = argv[3]
-        wordlist = load_wordlist(fn_wordlist)
+        wordlist = load_wordlist(fn_wordlist).values()
         x = play_word(bot, secret, wordlist)
         return x
     elif "botfights" == c:

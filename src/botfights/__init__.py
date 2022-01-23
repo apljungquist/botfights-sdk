@@ -18,12 +18,16 @@ def get_implementations():
     return dict(_gen_implementations())
 
 
-def wordle(guesser: str, seed: str = "", num: int = 0, event: Optional[str] = None):
+def wordle(
+    guesser: str,
+    seed: str = "",
+    num: int = 0,
+    event: Optional[str] = None,
+    wordlist: str = "bot",
+):
     get_random().seed(seed)
 
-    wordlist = load_wordlist(
-        pathlib.Path(__file__).absolute().parent / "wordle" / "wordlist.txt"
-    )
+    wordlist = load_wordlist(wordlist)
     bot = get_implementations()[guesser](wordlist)
 
     if event is None:

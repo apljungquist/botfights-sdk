@@ -50,7 +50,7 @@ def get_random():
     return g_random
 
 
-def load_wordlist(name):
+def load_wordlist(name, fraction=1.0):
     try:
         with open(name) as f:
             text = f.read()
@@ -59,6 +59,11 @@ def load_wordlist(name):
     lines = iter(text.splitlines())
     answers = list(itertools.takewhile(lambda line: line, lines))
     guesses = list(lines)
+
+    if fraction < 1.0:
+        answers = answers[: int(len(answers) * fraction)]
+        guesses = guesses[: int(len(guesses) * fraction)]
+
     return {
         word: is_answer
         for word, is_answer in itertools.chain(

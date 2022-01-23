@@ -24,10 +24,11 @@ def wordle(
     num: int = 0,
     event: Optional[str] = None,
     wordlist: str = "bot",
+    fraction: float = 1.0,
 ):
     get_random().seed(seed)
 
-    wordlist = load_wordlist(wordlist)
+    wordlist = load_wordlist(wordlist, fraction)
     bot = get_implementations()[guesser](wordlist)
 
     if event is None:

@@ -231,6 +231,7 @@ class Assisted:
         self._wordlist = wordlist
 
     def __call__(self, state):
+        print(state)
         prompt = "Your guess: "
         score = state.split(",")[-1].split(":")[-1]
         if score != "00000":

@@ -1,7 +1,10 @@
 # wordle.py -- botfights harness for wordle
 import itertools
+import logging
 
 import pkg_resources
+
+logger = logging.getLogger(__name__)
 
 USAGE = """\
 This is a harness to write bots that play wordle.
@@ -164,33 +167,29 @@ def play_bots(bots, wordlist, n):
             total_guesses[bot] += guesses
             total_time[bot] += t
             i += 1
-            sys.stdout.write(
-                "WORD\t%d\t%s\t%s\t%d\t%.3f\t%.3f\t%.3f\n"
-                % (
-                    i,
-                    word,
-                    bot,
-                    guesses,
-                    total_guesses[bot] / float(i),
-                    t,
-                    total_time[bot] / float(i),
-                )
+            logger.info(
+                "WORD\t%d\t%s\t%s\t%d\t%.3f\t%.3f\t%.3f\n",
+                i,
+                word,
+                bot,
+                guesses,
+                total_guesses[bot] / float(i),
+                t,
+                total_time[bot] / float(i),
             )
         if 1 != len(bots):
             bots_sorted = sorted(bot_keys, key=lambda x: total_guesses[x])
-            sys.stdout.write(
-                "BOTS\t%d\t%s\t%s\n"
-                % (
-                    i,
-                    word,
-                    "\t".join(
-                        map(
-                            lambda x: "%s:%d,%.3f"
-                            % (x, last_guesses[x], total_guesses[x] / float(i)),
-                            bots_sorted,
-                        )
-                    ),
-                )
+            logger.info(
+                "BOTS\t%d\t%s\t%s\n",
+                i,
+                word,
+                "\t".join(
+                    map(
+                        lambda x: "%s:%d,%.3f"
+                        % (x, last_guesses[x], total_guesses[x] / float(i)),
+                        bots_sorted,
+                    )
+                ),
             )
     return n
 
@@ -246,21 +245,17 @@ def play_human(secret, wordlist):
     guess = "-" * len(secret)
     while 1:
         score = calc_score(secret, guess, wordlist)
-        sys.stdout.write(
-            "guess_num: %d, last_guess: %s, last_score: %s\n"
-            % (guess_num, guess, score)
-        )
-        sys.stdout.write("Your guess?\n")
-        guess = sys.stdin.readline().strip()
+        print(f"guess_num: {guess_num}, last_guess: {guess}, last_score: {score}")
+        guess = input("Your guess?").strip()
         guess_num += 1
         if guess == secret:
             break
-    sys.stdout.write("Congratulations! You solved it in %d guesses.\n" % guess_num)
+    print(f"Congratulations! You solved it in {guess_num} guesses.")
     return guess_num
 
 
 def play_botfights(bot, username, password, event):
-    print("Creating fight on botfights.io ...")
+    logger.info("Creating fight on botfights.io ...")
     payload = {"event": event}
     r = requests.put(
         "https://api.botfights.io/api/v1/game/wordle/",
@@ -270,7 +265,7 @@ def play_botfights(bot, username, password, event):
     fight = r.json()
     fight_id = fight["fight_id"]
     feedback = fight["feedback"]
-    print("Fight created: https://botfights.io/fight/%s" % fight_id)
+    logger.info("Fight created: https://botfights.io/fight/%s", fight_id)
     history = {}
     for i, f in feedback.items():
         history[i] = [
@@ -288,7 +283,7 @@ def play_botfights(bot, username, password, event):
             history[i].append([guess, None])
         payload = {"guesses": guesses}
         round_num += 1
-        print("Round %d, %d words to go ..." % (round_num, len(guesses)))
+        logger.info("Round %d, %d words to go ...", round_num, len(guesses))
         time.sleep(1.0)
         r = requests.patch(
             "https://api.botfights.io/api/v1/game/wordle/%s" % fight_id,
@@ -299,7 +294,7 @@ def play_botfights(bot, username, password, event):
         feedback = response["feedback"]
         if "score" in response:
             score = int(response["score"])
-            print("Fight complete. Final score: %d" % score)
+            logger.info("Fight complete. Final score: %d", score)
             break
 
 

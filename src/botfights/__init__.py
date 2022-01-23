@@ -1,4 +1,5 @@
 import importlib.util
+import logging
 import os
 import pathlib
 from typing import Optional
@@ -53,4 +54,5 @@ def wordle(
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
     fire.Fire({func.__name__: func for func in [wordle]})
